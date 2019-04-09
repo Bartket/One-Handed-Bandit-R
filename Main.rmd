@@ -1,0 +1,110 @@
+---
+title: "One handed Bandit problem"
+author: "Bartosz Kopytek"
+date: "01.08.2018"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r Demo model}
+
+Simulations <- c() #vector for simualtions
+
+for (s in 1:1000) {
+  
+  # each loop generates new random environment
+
+P <- list(runif(100,0,1)) # set Probabilities for the coins for 100 machines
+
+P1 <- lapply(P,function(x) 1-x) # set Probabilities for "No coin" for 100 machines
+
+Machines <- setNames(data.frame(P,P1), c("P", "P1")) # Create Data Frame with the machines
+
+Machine <- c(1,0) # 1 = coin, 0 = no coin
+
+picks <- c(1:100) # vecotr with possible machine picks
+
+pulls <- 1001 # number of pulls
+
+coins <- c() # vector for coins
+
+tryCatch(
+while(pulls > 0) {
+  i <- 0
+  pick <- sample(picks, 1)
+  picks <- picks[!picks == pick]
+  m_coins <- c()
+  Machine_prob = 1
+  while(Machine_prob >= 0.9) { #Seeks for Machine with high win rate (> 0.9) #TBD could find optimal num. via sampling methods
+  i <- i + 1
+  pulls <- pulls - 1
+  coins[pulls] <- sample(Machine, 1, prob = Machines[pick, ])
+  m_coins[i]<-coins[pulls]
+  Machine_prob <- (sum(m_coins) / i)}
+}, error = function(e) NULL)
+#print(sum(coins,na.rm = T))
+#if(sum(coins,na.rm = T) < 8000){browser()}
+Simulations[s] <- sum(coins,na.rm = T)
+}
+
+mean(Simulations) # Average from 100 simulations
+
+plot(density(Simulations))
+
+```
+
+*Version 2*
+
+Machines Probability between 0 and 0.1
+
+```{r Demo model 2}
+
+Simulations <- c() #vector for simualtions
+
+for (s in 1:100) {
+  
+  # each loop generates new random environment
+
+P <- list(runif(100,0,0.1)) # set Probabilities for the coins for 100 machines
+
+P1 <- lapply(P,function(x) 1-x) # set Probabilities for "No coin" for 100 machines
+
+Machines <- setNames(data.frame(P,P1), c("P", "P1")) # Create Data Frame with the machines
+
+Machine <- c(1,0) # 1 = coin, 0 = no coin
+
+picks <- c(1:100) # vecotr with possible machine picks
+
+pulls <- 1000 # number of pulls
+
+coins <- c() # vector for coins
+
+tryCatch(
+while(pulls > 0) {
+  i <- 0
+  pulls <- pulls - 1
+  pick <- sample(picks, 1)
+  picks <- picks[!picks == pick]
+  m_coins <- c()
+  Machine_prob = 1
+  while(Machine_prob >= 0.05) { #Seeks for Machine with high win rate (> 0.05)
+  i <- i + 1
+  pulls <- pulls - 1
+  coins[pulls] <- sample(Machine, 1, prob = Machines[pick, ])
+  m_coins[i]<-coins[pulls]
+  Machine_prob <- (sum(m_coins) / i)
+  }
+}, error = function(e) NULL)
+print(sum(coins,na.rm = T))
+#if(sum(coins,na.rm = T) < 8000){browser()}
+Simulations[s] <- sum(coins,na.rm = T)
+}
+
+mean(Simulations) # Average from 100 simulations
+
+plot(density(Simulations))
+
+```
